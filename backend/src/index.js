@@ -18,5 +18,3 @@ httpServer.listen(constants.PORT, async err => {
         console.log(`API server listening on port: ${constants.PORT}`);
     }
 })
-
-

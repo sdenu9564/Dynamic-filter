@@ -11,10 +11,11 @@ import {
 } from "@mui/material";
 
 const OrdersTable = ({ data }) => {
-  console.log(data?.data?.rows)
+  console.log("Orders data:", data);
+
   if (!data || !data.rows || data.rows.length === 0) {
     return <Typography>No orders found.</Typography>;
-  } 
+  }
 
   return (
     <TableContainer component={Paper} sx={{ mt: 3 }}>
@@ -29,15 +30,20 @@ const OrdersTable = ({ data }) => {
             <TableCell><strong>Date</strong></TableCell>
           </TableRow>
         </TableHead>
+
         <TableBody>
           {data.rows.map((order) => (
             <TableRow key={order.id} hover>
               <TableCell>{order.id}</TableCell>
-              <TableCell>{order.user?.first_name} {order.user?.last_name}</TableCell>
+              <TableCell>
+                {order.user?.first_name} {order.user?.last_name}
+              </TableCell>
               <TableCell>{order.product?.product_name}</TableCell>
               <TableCell>{order.order_status}</TableCell>
-              <TableCell>{order.total_amount}</TableCell>
-              <TableCell>{new Date(order.order_date).toLocaleDateString()}</TableCell>
+              <TableCell>₹{order.total_amount}</TableCell>
+              <TableCell>
+                {new Date(order.order_date).toLocaleDateString()}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

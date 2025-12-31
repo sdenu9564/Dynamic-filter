@@ -6,9 +6,9 @@ import * as OrderController from '../controllers/order.controller.js';
 const routes = new Router();
 
 routes.get(
-    '/filter',
-    OrderController.getOrders
-)
+    '/filters', 
+    OrderController.getFilters
+);
 routes.post(
     '/search',
     OrderController.searchOrders

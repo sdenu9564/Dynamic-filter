@@ -3,7 +3,14 @@ import OrdersTable from "./components/OrdersTable";
 import FilterForm from "./components/FilterForm";
 import AdvancedSearchModal from "./components/AdvancedSearchModal";
 import { searchOrders } from "./services/api";
-import { Container, Typography, Button, Box } from "@mui/material";
+import {
+  Container,
+  Typography,
+  Button,
+  Box,
+  Pagination,
+  Stack,
+} from "@mui/material";
 
 function App() {
   const [orders, setOrders] = useState(null);
@@ -11,15 +18,22 @@ function App() {
   const [filters, setFilters] = useState([]);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
-  const limit = 10;
+  const limit = 3;
 
   const fetchOrders = (filtersArray = [], pageNumber = 1) => {
-    searchOrders({ filters: filtersArray, page: pageNumber, limit })
+    searchOrders({
+      filters: filtersArray,
+      page: pageNumber,
+      limit,
+    })
       .then((res) => {
+        // backend: res.data.data.data
         setOrders(res.data.data.data);
         setPage(pageNumber);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error("Failed to fetch orders:", err);
+      });
   };
 
   useEffect(() => {
@@ -37,7 +51,7 @@ function App() {
         Dynamic Orders Table
       </Typography>
 
-      <FilterForm onApply={handleApplyFilters} />
+      {/* <FilterForm onApply={handleApplyFilters} /> */}
 
       <Box sx={{ mb: 2 }}>
         <Button
@@ -45,7 +59,15 @@ function App() {
           color="secondary"
           onClick={() => setIsAdvancedOpen(true)}
         >
-          Advanced Search
+          Search
+        </Button>
+        <Button
+        sx={{m: 2}}
+          variant="contained"
+          color="secondary"
+          onClick={() => handleApplyFilters()}
+        >
+          Reset
         </Button>
       </Box>
 
@@ -56,6 +78,17 @@ function App() {
       />
 
       <OrdersTable data={orders} />
+
+      {orders && orders.count > limit && (
+        <Stack spacing={2} sx={{ mt: 3 }} alignItems="center">
+          <Pagination
+            count={Math.ceil(orders.count / limit)}
+            page={page}
+            onChange={(e, value) => fetchOrders(filters, value)}
+            color="primary"
+          />
+        </Stack>
+      )}
     </Container>
   );
 }

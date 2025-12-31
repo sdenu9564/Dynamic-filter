@@ -9,61 +9,53 @@ import {
   MenuItem,
   Stack,
 } from "@mui/material";
+import { getFilters } from "../services/api"; 
 import axios from "axios";
 
-const USERS_API = "http://localhost:9000/api/users";
-const PRODUCTS_API = "http://localhost:9000/api/products";
+const USERS_API = "http://localhost:9000/api/users"; 
+const PRODUCTS_API = "http://localhost:9000/api/products"; 
 
 const AdvancedSearchModal = ({ open, onClose, onApply }) => {
+  const [filtersConfig, setFiltersConfig] = useState([]);
+  const [form, setForm] = useState({});
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
 
-  const [form, setForm] = useState({
-    user_id: "",
-    user_gender: "",
-    product_id: "",
-    product_category: "",
-    order_status: "",
-    start_date: "",
-    end_date: "",
-    min_total: "",
-    max_total: "",
-  });
-
   useEffect(() => {
-    axios.get(USERS_API).then(res => setUsers(res?.data?.data || []));
-    axios.get(PRODUCTS_API).then(res => setProducts(res?.data?.data || []));
-  }, []);
+    if (open) {
+      getFilters()
+        .then(res => {
+          const configs = res?.data?.data.data || [];
+          setFiltersConfig(configs);
+
+          const initialForm = {};
+          configs.forEach(f => initialForm[f.key] = "");
+          setForm(initialForm);
+        })
+        .catch(console.error);
+
+      axios.get(USERS_API).then(res => setUsers(res?.data?.data || [])).catch(console.error);
+      axios.get(PRODUCTS_API).then(res => setProducts(res?.data?.data || [])).catch(console.error);
+    }
+  }, [open]);
 
   const handleChange = (key) => (e) => {
     setForm({ ...form, [key]: e.target.value });
   };
 
   const handleApply = () => {
-    const filters = [];
-
+    const filtersArray = [];
     Object.entries(form).forEach(([key, value]) => {
-      if (value !== "") {
-        filters.push({ key, value });
-      }
+      if (value !== "") filtersArray.push({ key, value });
     });
-
-    onApply(filters);
+    onApply(filtersArray);
     onClose();
   };
 
   const handleReset = () => {
-    setForm({
-      user_id: "",
-      user_gender: "",
-      product_id: "",
-      product_category: "",
-      order_status: "",
-      start_date: "",
-      end_date: "",
-      min_total: "",
-      max_total: "",
-    });
+    const resetForm = {};
+    filtersConfig.forEach(f => resetForm[f.key] = "");
+    setForm(resetForm);
   };
 
   return (
@@ -72,108 +64,97 @@ const AdvancedSearchModal = ({ open, onClose, onApply }) => {
 
       <DialogContent dividers>
         <Stack spacing={2}>
+          {filtersConfig.map(f => {
+            if (f.type === "enum") {
+              return (
+                <TextField
+                  key={f.key}
+                  select
+                  label={f.title}
+                  value={form[f.key]}
+                  onChange={handleChange(f.key)}
+                  fullWidth
+                  size="small"
+                >
+                  <MenuItem value="">Any</MenuItem>
+                  {f.options?.map(opt => (
+                    <MenuItem key={opt} value={opt}>{opt}</MenuItem>
+                  ))}
+                </TextField>
+              );
+            }
 
-          <TextField
-            select
-            label="User"
-            value={form.user_id}
-            onChange={handleChange("user_id")}
-            fullWidth
-          >
-            <MenuItem value="">All Users</MenuItem>
-            {users.map(u => (
-              <MenuItem key={u.id} value={u.id}>
-                {u.first_name} {u.last_name}
-              </MenuItem>
-            ))}
-          </TextField>
+            if (f.key === "user_id") {
+              return (
+                <TextField
+                  key={f.key}
+                  select
+                  label={f.title}
+                  value={form[f.key]}
+                  onChange={handleChange(f.key)}
+                  fullWidth
+                  size="small"
+                >
+                  <MenuItem value="">All Users</MenuItem>
+                  {users.map(u => (
+                    <MenuItem key={u.id} value={u.id}>
+                      {u.first_name} {u.last_name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              );
+            }
 
-          <TextField
-            select
-            label="User Gender"
-            value={form.user_gender}
-            onChange={handleChange("user_gender")}
-            fullWidth
-          >
-            <MenuItem value="">Any</MenuItem>
-            <MenuItem value="male">Male</MenuItem>
-            <MenuItem value="female">Female</MenuItem>
-          </TextField>
+            if (f.key === "product_id") {
+              return (
+                <TextField
+                  key={f.key}
+                  select
+                  label={f.title}
+                  value={form[f.key]}
+                  onChange={handleChange(f.key)}
+                  fullWidth
+                  size="small"
+                >
+                  <MenuItem value="">All Products</MenuItem>
+                  {products.map(p => (
+                    <MenuItem key={p.id} value={p.id}>{p.product_name}</MenuItem>
+                  ))}
+                </TextField>
+              );
+            }
 
-          <TextField
-            select
-            label="Product"
-            value={form.product_id}
-            onChange={handleChange("product_id")}
-            fullWidth
-          >
-            <MenuItem value="">All Products</MenuItem>
-            {products.map(p => (
-              <MenuItem key={p.id} value={p.id}>
-                {p.product_name}
-              </MenuItem>
-            ))}
-          </TextField>
+            if (f.type === "date") {
+              return (
+                <TextField
+                  key={f.key}
+                  label={f.title}
+                  type="date"
+                  value={form[f.key]}
+                  onChange={handleChange(f.key)}
+                  InputLabelProps={{ shrink: true }}
+                  fullWidth
+                  size="small"
+                />
+              );
+            }
 
-          <TextField
-            label="Product Category"
-            value={form.product_category}
-            onChange={handleChange("product_category")}
-            fullWidth
-          />
+            if (f.type === "number" || f.type === "string") {
+              return (
+                <TextField
+                  key={f.key}
+                  label={f.title}
+                  type={f.type === "number" ? "number" : "text"}
+                  value={form[f.key]}
+                  onChange={handleChange(f.key)}
+                  fullWidth
+                  size="small"
+                />
+              );
+            }
 
-          <TextField
-            select
-            label="Order Status"
-            value={form.order_status}
-            onChange={handleChange("order_status")}
-            fullWidth
-          >
-            <MenuItem value="">Any</MenuItem>
-            <MenuItem value="placed">Placed</MenuItem>
-            <MenuItem value="shipped">Shipped</MenuItem>
-            <MenuItem value="delivered">Delivered</MenuItem>
-            <MenuItem value="cancelled">Cancelled</MenuItem>
-          </TextField>
-
-          <Stack direction="row" spacing={2}>
-            <TextField
-              label="Start Date"
-              type="date"
-              value={form.start_date}
-              onChange={handleChange("start_date")}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-            />
-
-            <TextField
-              label="End Date"
-              type="date"
-              value={form.end_date}
-              onChange={handleChange("end_date")}
-              InputLabelProps={{ shrink: true }}
-              fullWidth
-            />
-          </Stack>
-
-          <Stack direction="row" spacing={2}>
-            <TextField
-              label="Min Total Amount"
-              type="number"
-              value={form.min_total}
-              onChange={handleChange("min_total")}
-              fullWidth
-            />
-
-            <TextField
-              label="Max Total Amount"
-              type="number"
-              value={form.max_total}
-              onChange={handleChange("max_total")}
-              fullWidth
-            />
-          </Stack>
-
+            return null;
+          })}
         </Stack>
       </DialogContent>
 

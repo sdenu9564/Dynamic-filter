@@ -2,44 +2,20 @@ import { sendHttpResponse } from "../utils/createResponse.js";
 import { getFilteredOrders } from "../sequelizeQueries/order.queries.js";
 import { validateQueryParams } from "../utils/validations.js";
 import ALLOWED_QUERY_PARAMS from "../validations/orders.validation.js";
+import FILTERS_CONFIG from "../config/filters.config.js";
 
-export const getOrders = async (req, res) => {
-  try {
-    const params = req.query || {};
-
-    const validationErrors = validateQueryParams(params);
-    if (validationErrors.length > 0) {
-      return sendHttpResponse(res, 400, {
-        success: false,
-        message: "Validation failed",
-        errors: validationErrors
-      });
-    }
-
-    const result = await getFilteredOrders(params);
-
-    return sendHttpResponse(res, 200, {
-      success: true,
-      data: result
-    });
-  } catch (err) {
-    console.error(
-      "err -------- getOrders --------- order.controller.js",
-      err?.message || err
-    );
-
-    return sendHttpResponse(res, 500, {
-      success: false,
-      message: "Failed to fetch orders"
-    });
-  }
+export const getFilters = async (req, res) => {
+  return sendHttpResponse(res, 200, {
+    success: true,
+    data: FILTERS_CONFIG
+  });
 };
 
 
 
 export const searchOrders = async (req, res) => {
   try {
-    const { filters = [], page = 1, limit = 20 } = req.body;
+    const { filters = [], page = 1, limit = 3 } = req.body;
 
     const errors = [];
     const params = {};

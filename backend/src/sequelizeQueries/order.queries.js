@@ -32,7 +32,7 @@ const buildWhere = (params = {}) => {
   if (params.product_category) productWhere.category = params.product_category;
 
   const page = params.page ? Math.max(parseInt(params.page, 10), 1) : 1;
-  const limit = params.limit ? Math.max(parseInt(params.limit, 10), 1) : 20;
+  const limit = params.limit ? Math.max(parseInt(params.limit, 10), 1) : 3;
   const offset = (page - 1) * limit;
 
   return { orderWhere, userWhere, productWhere, pagination: { page, limit, offset } };
