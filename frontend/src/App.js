@@ -17,6 +17,7 @@ function App() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState([]);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
 
   const limit = 3;
 
@@ -45,6 +46,12 @@ function App() {
     fetchOrders(filtersArray, 1);
   };
 
+  const handleReset = () => {
+  setFilters([]);
+  setResetKey(prev => prev + 1);  
+  fetchOrders([], 1);
+  };
+
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -65,7 +72,7 @@ function App() {
         sx={{m: 2}}
           variant="contained"
           color="secondary"
-          onClick={() => handleApplyFilters()}
+          onClick={ handleReset}
         >
           Reset
         </Button>
@@ -75,6 +82,7 @@ function App() {
         open={isAdvancedOpen}
         onClose={() => setIsAdvancedOpen(false)}
         onApply={handleApplyFilters}
+         resetKey={resetKey}
       />
 
       <OrdersTable data={orders} />
